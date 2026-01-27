@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PilatesFlow - Painel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">PilatesFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="nav-link text-white me-3">Olá, Elma</span>
+                    </li>
+                    <li class="nav-item">
+                        <button id="logoutBtn" class="btn btn-outline-light btn-sm mt-1">Sair</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <!-- Resumo Rápido -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-white rounded shadow-sm text-center">
+                    <div class="text-primary h2 mb-0" id="statActiveStudents">0</div>
+                    <div class="text-muted small">Alunos Ativos</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-white rounded shadow-sm text-center">
+                    <div class="text-success h2 mb-0" id="statMonthlyRevenue">R$ 0</div>
+                    <div class="text-muted small">Total a Receber</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seções Principais -->
+        <ul class="nav nav-pills mb-4 justify-content-center" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pills-students-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-students" type="button">Alunos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pills-finance-tab" data-bs-toggle="pill" data-bs-target="#pills-finance"
+                    type="button">Financeiro</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            <!-- ABA ALUNOS -->
+            <div class="tab-pane fade show active" id="pills-students">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="input-group w-50">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="studentSearch" class="form-control border-start-0"
+                            placeholder="Buscar aluno...">
+                    </div>
+                    <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#studentModal">
+                        <i class="bi bi-plus-lg"></i> Novo
+                    </button>
+                </div>
+
+                <div id="studentsList" class="row g-3">
+                    <!-- Cards de alunos via JS -->
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA FINANCEIRO -->
+            <div class="tab-pane fade" id="pills-finance">
+                <div class="bg-white rounded shadow-sm p-3">
+                    <h5 class="mb-3">Mensalidades Pendentes</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Vencimento</th>
+                                    <th>Valor</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingPaymentsList">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALUNO (ADICIONAR/EDITAR) -->
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0 rounded-top">
+                    <h5 class="modal-title" id="modalTitle">Cadastrar Aluno</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="studentForm">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="studentId">
+                        <div class="mb-3">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="studentName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="studentPhone" placeholder="(00) 00000-0000"
+                                required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Mensalidade (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="studentFee" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Dia Vencimento</label>
+                                <input type="number" min="1" max="31" class="form-control" id="studentDueDay" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label d-block">Status</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="status" id="statusActive" value="Ativo"
+                                    checked>
+                                <label class="btn btn-outline-success" for="statusActive">Ativo</label>
+                                <input type="radio" class="btn-check" name="status" id="statusInactive" value="Inativo">
+                                <label class="btn btn-outline-secondary" for="statusInactive">Inativo</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
