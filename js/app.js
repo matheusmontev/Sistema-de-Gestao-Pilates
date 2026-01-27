@@ -76,11 +76,16 @@ function renderStudents(students) {
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="small">
                             <strong>R$ ${parseFloat(student.monthlyFee).toFixed(2)}</strong>
-                            <span class="text-muted ms-1">Dia ${student.dueDate}</span>
+                            <span class="text-muted ms-1">Venc: ${student.dueDate ? new Date(student.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                         </div>
-                        <button class="btn btn-sm btn-light border edit-btn" data-id="${student.id}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
+                        <div class="btn-group">
+                            <a href="anamnese.html?id=${student.id}" class="btn btn-sm btn-outline-primary border">
+                                <i class="bi bi-file-earmark-person"></i> Ficha
+                            </a>
+                            <button class="btn btn-sm btn-light border edit-btn" data-id="${student.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
