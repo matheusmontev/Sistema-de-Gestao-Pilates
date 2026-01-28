@@ -21,7 +21,7 @@ if (loginForm) {
                 // Signed in
                 const user = userCredential.user;
                 console.log("Login success:", user);
-                window.location.href = 'dashboard.html';
+                window.location.href = 'telas/dashboard.html';
             })
             .catch((error) => {
                 const errorCode = error.code;

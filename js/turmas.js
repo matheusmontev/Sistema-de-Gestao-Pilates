@@ -22,7 +22,7 @@ const feedbackEl = document.getElementById('feedbackToast');
 // --- AUTH ---
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     } else {
         init();
     }

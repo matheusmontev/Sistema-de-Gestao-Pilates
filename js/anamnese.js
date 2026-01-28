@@ -13,7 +13,7 @@ const successToast = new bootstrap.Toast(document.getElementById('successToast')
 // --- AUTH PROTECTION ---
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     } else if (studentId) {
         loadData();
     } else {
