@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PilatesFlow - Biblioteca de Exercícios</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .exercise-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+        }
+
+        .exercise-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .exercise-img-wrapper {
+            height: 180px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .exercise-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .exercise-placeholder {
+            font-size: 3rem;
+            color: #dee2e6;
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="dashboard.html">PilatesFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a href="dashboard.html" class="nav-link text-white me-3">Dashboard</a></li>
+                    <li class="nav-item"><a href="turmas.html" class="nav-link text-white me-3">Turmas</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link active text-white fw-bold me-3">Exercícios</a></li>
+                    <li class="nav-item"><a href="treinos.html" class="nav-link text-white me-3">Treinos</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h3 class="text-primary fw-bold mb-0">Biblioteca de Exercícios</h3>
+            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#exerciseModal">
+                <i class="bi bi-plus-lg"></i> Novo Exercício
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0"
+                        placeholder="Buscar exercício...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select id="categoryFilter" class="form-select">
+                    <option value="">Todas as Categorias</option>
+                    <option value="Fortalecimento">Fortalecimento</option>
+                    <option value="Mobilidade">Mobilidade</option>
+                    <option value="Alongamento">Alongamento</option>
+                    <option value="Core">Core</option>
+                    <option value="Equilíbrio">Equilíbrio</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Grid de Exercícios -->
+        <div id="exercisesGrid" class="row g-4">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EXERCÍCIO (ADICIONAR/EDITAR) -->
+    <div class="modal fade" id="exerciseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title" id="modalTitle">Novo Exercício</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="exerciseForm">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="exerciseId">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nome do Exercício</label>
+                            <input type="text" class="form-control" id="exerciseName" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Categoria</label>
+                            <select class="form-select" id="exerciseCategory" required>
+                                <option value="Fortalecimento">Fortalecimento</option>
+                                <option value="Mobilidade">Mobilidade</option>
+                                <option value="Alongamento">Alongamento</option>
+                                <option value="Core">Core</option>
+                                <option value="Equilíbrio">Equilíbrio</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">URL da Foto (Opcional)</label>
+                            <input type="url" class="form-control" id="exercisePhoto" placeholder="https://...">
+                            <div class="form-text">Cole o link de uma imagem da internet.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Link do Vídeo (YouTube - Opcional)</label>
+                            <input type="url" class="form-control" id="exerciseVideo"
+                                placeholder="https://youtube.com/...">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Feedback -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="feedbackToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="feedbackMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/exercicios.js"></script>
+</body>
+
+</html>
