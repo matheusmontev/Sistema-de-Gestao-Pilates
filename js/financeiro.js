@@ -71,14 +71,19 @@ async function runAutomation() {
 
             if (existing.empty) {
                 const [year, month] = currentMonth.split('-');
-                const day = parseInt(student.dueDay || 10);
+                let day = 10;
+                if (student.dueDate) {
+                    // Extrai o dia da string YYYY-MM-DD
+                    const dateParts = student.dueDate.split('-');
+                    day = parseInt(dateParts[2]) || 10;
+                }
                 const dueDate = new Date(year, month - 1, day);
 
                 await addDoc(collection(db, "transactions"), {
                     type: "fee",
                     category: "Mensalidade",
                     description: `Mensalidade - ${student.name}`,
-                    amount: parseFloat(student.fee || 0),
+                    amount: parseFloat(student.monthlyFee || 0), // Corrigido: era student.fee
                     dueDate: Timestamp.fromDate(dueDate),
                     paymentDate: null,
                     status: "pending",
@@ -95,6 +100,16 @@ async function runAutomation() {
         const prevMonthDate = new Date(y, m - 2, 1);
         const prevMonthRef = prevMonthDate.toISOString().substring(0, 7);
 
+        const data = {
+            type: document.getElementById('expenseRecurring').checked ? 'expense_fixed' : 'expense_variable',
+            description: document.getElementById('expenseDesc').value,
+            amount: parseFloat(document.getElementById('expenseAmount').value),
+            dueDate: Timestamp.fromDate(new Date(document.getElementById('expenseDueDate').value + "T00:00:00")),
+            monthRef: currentMonth,
+            status: "pending",
+            isRecurring: document.getElementById('expenseRecurring').checked,
+            createdAt: serverTimestamp()
+        };
         const prevExpQuery = query(collection(db, "transactions"),
             where("monthRef", "==", prevMonthRef),
             where("isRecurring", "==", true));
@@ -422,14 +437,15 @@ window.setExpenseType = (type) => {
     const recurring = document.getElementById('recurringDiv');
     const kind = document.getElementById('expenseKind');
 
+    // Sempre mostrar a opção de recorrência (Fixa)
+    recurring.classList.remove('d-none');
+
     if (type === 'fixed') {
         title.innerText = "Nova Despesa Fixa";
-        recurring.classList.remove('d-none');
         document.getElementById('expenseRecurring').checked = true;
         kind.value = 'fixed';
     } else {
-        title.innerText = "Nova Despesa Variável";
-        recurring.classList.add('d-none');
+        title.innerText = "Nova Despesa";
         document.getElementById('expenseRecurring').checked = false;
         kind.value = 'variable';
     }

@@ -135,7 +135,7 @@ studentForm.addEventListener('submit', async (e) => {
         name: document.getElementById('studentName').value,
         phone: document.getElementById('studentPhone').value,
         monthlyFee: parseFloat(document.getElementById('studentFee').value),
-        dueDate: parseInt(document.getElementById('studentDueDay').value),
+        dueDate: document.getElementById('studentDueDay').value, // Salva como string YYYY-MM-DD
         status: document.querySelector('input[name="status"]:checked').value,
         updatedAt: serverTimestamp()
     };
@@ -160,7 +160,7 @@ function openEditModal(student) {
     document.getElementById('studentName').value = student.name;
     document.getElementById('studentPhone').value = student.phone;
     document.getElementById('studentFee').value = student.monthlyFee;
-    document.getElementById('studentDueDay').value = student.dueDate;
+    document.getElementById('studentDueDay').value = student.dueDate; // Agora carrega a string YYYY-MM-DD no input date
 
     if (student.status === 'Ativo') {
         document.getElementById('statusActive').checked = true;
