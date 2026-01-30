@@ -19,17 +19,25 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // --- APP LOGIC ---
 const studentsListEl = document.getElementById('studentsList');
-const pendingPaymentsListEl = document.getElementById('pendingPaymentsList');
 const studentForm = document.getElementById('studentForm');
 const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
 let allStudents = [];
+let allTransactions = [];
 
 function initApp() {
-    // Escuta mudanças em tempo real no Firestore
-    const q = collection(db, "students");
-    onSnapshot(q, (snapshot) => {
+    // Escuta Alunos
+    onSnapshot(collection(db, "students"), (snapshot) => {
         allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderAll();
+    });
+
+    // Escuta Transações do mês atual para Alertas e Estatísticas
+    const currentMonth = new Date().toISOString().substring(0, 7);
+    const qTrans = query(collection(db, "transactions"), where("monthRef", "==", currentMonth));
+    onSnapshot(qTrans, (snapshot) => {
+        allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderFinancialStats();
+        renderFinancialAlerts();
     });
 }
 
@@ -38,17 +46,39 @@ function renderAll() {
     const filtered = allStudents.filter(s => s.name.toLowerCase().includes(searchTerm));
 
     renderStudents(filtered);
-    renderStats(allStudents);
-    renderFinance(allStudents);
+    renderGeneralStats(allStudents);
 }
 
 // 1. Dashboard Stats
-function renderStats(students) {
+function renderGeneralStats(students) {
     const active = students.filter(s => s.status === 'Ativo');
-    const totalRevenue = active.reduce((sum, s) => sum + parseFloat(s.monthlyFee || 0), 0);
-
     document.getElementById('statActiveStudents').innerText = active.length;
-    document.getElementById('statMonthlyRevenue').innerText = `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+}
+
+function renderFinancialStats() {
+    let incomePlanned = 0;
+    allTransactions.forEach(t => {
+        if (t.type === 'fee' || t.type === 'income_extra') {
+            incomePlanned += t.amount;
+        }
+    });
+    document.getElementById('statMonthlyRevenue').innerText = `R$ ${incomePlanned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+}
+
+function renderFinancialAlerts() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const overdue = allTransactions.filter(t => t.status === 'pending' && t.dueDate.toDate() < today);
+
+    const alertEl = document.getElementById('financialAlert');
+    const msgEl = document.getElementById('alertMessage');
+
+    if (overdue.length > 0) {
+        alertEl.classList.remove('d-none');
+        msgEl.innerText = `Atenção: Existem ${overdue.length} mensalidades ATRASADAS!`;
+    } else {
+        alertEl.classList.add('d-none');
+    }
 }
 
 // 2. Render Student List
@@ -63,6 +93,7 @@ function renderStudents(students) {
     students.forEach(student => {
         const card = document.createElement('div');
         card.className = 'col-12 col-md-6 col-lg-4';
+        const fee = parseFloat(student.monthlyFee || 0);
         card.innerHTML = `
             <div class="card border-0 shadow-sm h-100 student-card">
                 <div class="card-body">
@@ -75,8 +106,8 @@ function renderStudents(students) {
                     <p class="small text-muted mb-2"><i class="bi bi-telephone"></i> ${student.phone}</p>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="small">
-                            <strong>R$ ${parseFloat(student.monthlyFee).toFixed(2)}</strong>
-                            <span class="text-muted ms-1">Venc: ${student.dueDate ? new Date(student.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                            <strong>R$ ${fee.toFixed(2)}</strong>
+                            <span class="text-muted ms-1">Dia ${student.dueDate || '--'}</span>
                         </div>
                         <div class="btn-group">
                             <a href="anamnese.html?id=${student.id}" class="btn btn-sm btn-outline-primary border">
@@ -96,40 +127,7 @@ function renderStudents(students) {
     });
 }
 
-// 3. Render Finance (Pending)
-function renderFinance(students) {
-    pendingPaymentsListEl.innerHTML = '';
-    const active = students.filter(s => s.status === 'Ativo');
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-
-    active.forEach(student => {
-        const isPaid = student.lastPaidMonth === currentMonth;
-
-        if (!isPaid) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${student.name}</td>
-                <td>Dia ${student.dueDate}</td>
-                <td class="fw-bold">R$ ${parseFloat(student.monthlyFee).toFixed(2)}</td>
-                <td>
-                    <button class="btn btn-sm btn-success pay-btn" data-id="${student.id}">
-                        <i class="bi bi-check-lg"></i> Pago
-                    </button>
-                </td>
-            `;
-            row.querySelector('.pay-btn').addEventListener('click', () => markAsPaid(student.id));
-            pendingPaymentsListEl.appendChild(row);
-        }
-    });
-
-    if (pendingPaymentsListEl.children.length === 0) {
-        pendingPaymentsListEl.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Tudo em dia!</td></tr>';
-    }
-}
-
 // --- CRUD OPERATIONS ---
-
-// Add or Update
 studentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('studentId').value;
@@ -147,7 +145,6 @@ studentForm.addEventListener('submit', async (e) => {
             await updateDoc(doc(db, "students", id), data);
         } else {
             data.createdAt = serverTimestamp();
-            data.lastPaidMonth = ""; // Inicia sem pagamento
             await addDoc(collection(db, "students"), data);
         }
         studentModal.hide();
@@ -156,13 +153,6 @@ studentForm.addEventListener('submit', async (e) => {
         alert("Erro ao salvar aluno: " + err.message);
     }
 });
-
-async function markAsPaid(id) {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    await updateDoc(doc(db, "students", id), {
-        lastPaidMonth: currentMonth
-    });
-}
 
 function openEditModal(student) {
     document.getElementById('modalTitle').innerText = "Editar Aluno";
@@ -181,12 +171,10 @@ function openEditModal(student) {
     studentModal.show();
 }
 
-// Reset modal on close
 document.getElementById('studentModal').addEventListener('hidden.bs.modal', () => {
     document.getElementById('modalTitle').innerText = "Cadastrar Aluno";
     document.getElementById('studentId').value = "";
     studentForm.reset();
 });
 
-// Search
 document.getElementById('studentSearch').addEventListener('input', renderAll);
